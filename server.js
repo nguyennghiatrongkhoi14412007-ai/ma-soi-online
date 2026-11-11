@@ -69,6 +69,7 @@ function leave(socket){
 }
 
 io.on('connection', socket=>{
+  socket.on('room:leave',()=>leave(socket));
   socket.on('room:create', ({name}={})=>{
     if(socketRoom.has(socket.id)) leave(socket);
     name=cleanName(name); if(!name) return fail(socket,'Bạn hãy nhập tên trước khi tạo phòng.');
