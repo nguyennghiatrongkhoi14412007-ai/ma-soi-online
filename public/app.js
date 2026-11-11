@@ -41,8 +41,10 @@ window.addEventListener('beforeunload',()=>{});
 (function(){
   const modal=$('creatorModal');
   if(!modal) return;
-  const close=()=>{modal.classList.add('hidden');if($('neverShowAgain')?.checked){try{localStorage.setItem('nightfallIntroDismissed','1')}catch(e){}}};
-  if(!localStorage.getItem('nightfallIntroDismissed')) modal.classList.remove('hidden');
+  const close=()=>{modal.classList.add('hidden');document.body.style.overflow='';if($('neverShowAgain')?.checked){try{localStorage.setItem('nightfallIntroDismissed','1')}catch(e){}}};
+  let dismissed=false;
+  try{dismissed=localStorage.getItem('nightfallIntroDismissed')==='1'}catch(e){}
+  if(!dismissed){modal.classList.remove('hidden');document.body.style.overflow='hidden'}
   $('creatorClose').onclick=close;
   $('creatorStart').onclick=close;
   modal.addEventListener('click',e=>{if(e.target===modal)close()});
