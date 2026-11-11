@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#100d12"><title>Ma Sói Online — Nightfall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css"><script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+<div class="ambient"></div><header class="topbar"><a class="brand" href="/"><span class="brand-mark">☾</span><span>NIGHTFALL<small>MA SÓI ONLINE</small></span></a><div class="top-status"><i></i> HỆ THỐNG SẴN SÀNG</div></header>
+<main>
+<section id="home" class="screen active">
+  <div class="hero"><div class="eyebrow"><span></span> THE NIGHT IS YOUNG</div><h1>ĐÊM NAY,<br><em>AI LÀ MA SÓI?</em></h1><p class="hero-copy">Tập hợp bạn bè. Chia vai bí mật. Và để màn đêm quyết định số phận.</p>
+  <div class="home-panel"><label for="playerName">TÊN CỦA BẠN</label><input id="playerName" maxlength="18" placeholder="Nhập tên người chơi..." autocomplete="nickname"><div class="home-actions"><button class="btn primary" id="createBtn">✦ TẠO PHÒNG</button><div class="join-wrap"><input id="roomCode" maxlength="6" placeholder="MÃ PHÒNG"><button class="btn secondary" id="joinBtn">THAM GIA ↗</button></div></div><p class="micro">MIỄN PHÍ · KHÔNG CẦN TÀI KHOẢN · TỐI ĐA 30 NGƯỜI</p></div></div>
+  <div class="feature-row"><div><b>01</b><span>PHÒNG RIÊNG</span><small>Mã phòng dành cho nhóm bạn</small></div><div><b>02</b><span>CHIA BÀI BÍ MẬT</span><small>Mỗi người xem role trên máy riêng</small></div><div><b>03</b><span>NGẪU NHIÊN CÔNG BẰNG</span><small>Xáo bài bằng thuật toán ngẫu nhiên</small></div></div>
+</section>
+<section id="lobby" class="screen">
+  <div class="page-heading"><div class="eyebrow"><span></span> PRIVATE GAME ROOM</div><h2>SẢNH CHỜ</h2><p>Gọi đồng đội vào phòng và chuẩn bị cho đêm định mệnh.</p></div>
+  <div class="room-layout"><div class="panel players-panel"><div class="panel-head"><div><small>PHÒNG CỦA BẠN</small><h3 id="roomCodeDisplay">------</h3></div><button class="icon-btn" id="copyCode" title="Sao chép mã">▣</button></div><div class="share-hint">Gửi mã này cho bạn bè để họ tham gia.</div><div class="section-line"><span>NGƯỜI CHƠI</span><b id="playerCount">0/30</b></div><div id="playersList" class="players-list"></div><div class="room-foot"><span class="live-dot"></span> ĐANG ĐỒNG BỘ TRỰC TIẾP</div></div>
+  <div class="panel setup-panel"><div class="panel-title"><div><small>GAME MASTER</small><h3>CẤU HÌNH VÁN ĐẤU</h3></div><span class="host-tag">CHỦ PHÒNG</span></div><p class="muted">Chọn số lượng từng role. Mỗi lá bài được xáo với xác suất như nhau; hệ thống phát đúng số lá bằng số người chơi.</p><div class="role-tools"><input id="roleSearch" placeholder="⌕  Tìm vai trò..."><select id="teamFilter"><option value="all">Tất cả phe</option><option value="town">Dân làng</option><option value="wolf">Ma sói</option><option value="solo">Độc lập</option><option value="wild">Khác / biến thể</option></select></div><div id="roleGroups" class="role-groups"></div><div class="deck-summary"><div><small>TỔNG SỐ LÁ ĐÃ CHỌN</small><strong id="deckCount">0</strong></div><span id="deckHint">Cần đủ lá cho tất cả người chơi</span></div><button class="btn primary full" id="startBtn">✦ BẮT ĐẦU CHIA BÀI</button><p class="micro">CHỈ CHỦ PHÒNG CÓ QUYỀN CẤU HÌNH VÀ BẮT ĐẦU</p></div></div>
+</section>
+<section id="game" class="screen">
+  <div class="page-heading game-heading"><div class="eyebrow"><span></span> THE FATE IS SEALED</div><h2>VAI TRÒ CỦA BẠN</h2><p>Đảm bảo không ai nhìn vào màn hình của bạn trước khi mở bài.</p></div>
+  <div class="secret-wrap"><div class="card-back" id="cardBack"><div class="card-back-inner"><span class="moon">☾</span><div class="sigil">✦</div><div class="card-back-title">NIGHTFALL</div><small>YOUR DESTINY AWAITS</small><button id="revealBtn" class="btn primary reveal-btn">MỞ LÁ BÀI</button></div></div>
+  <div id="roleCard" class="role-card hidden"><div class="role-art" id="roleArt"><span id="roleEmoji">🐺</span><div class="art-orbit"></div><div class="art-moon">☾</div></div><div class="role-info"><small>THÂN PHẬN CỦA BẠN</small><h2 id="roleName">MA SÓI</h2><span id="roleTeam" class="team-pill">PHE MA SÓI</span><p id="roleDescription"></p><div class="secret-warning">◈ ĐỪNG ĐỂ NGƯỜI KHÁC NHÌN THẤY LÁ BÀI NÀY</div></div></div></div>
+  <div class="game-bottom"><div class="players-mini" id="gamePlayerCount">0 người chơi trong phòng</div><button class="btn secondary" id="resetBtn" hidden>CHỦ PHÒNG · TẠO VÁN MỚI</button></div>
+</section>
+</main>
+<div id="toast" class="toast"></div><footer> NIGHTFALL <span>✦</span> A GAME OF TRUST & DECEPTION</footer>
+<script src="/app.js"></script>
+</body></html>
