@@ -37,14 +37,31 @@ $('homeBtn').onclick=()=>{if(!confirm('Rời phòng hiện tại và quay về t
 $('copyCode').onclick=async()=>{try{await navigator.clipboard.writeText(currentRoom.code);toast('Đã sao chép mã phòng!')}catch{toast('Mã phòng: '+currentRoom.code)}};
 window.addEventListener('beforeunload',()=>{});
 
-// Welcome / creator credit: shown once per browser unless the visitor opts out.
+// Welcome / creator credit: visible on first visit unless the visitor opted out.
 (function(){
   const modal=$('creatorModal');
   if(!modal) return;
-  const close=()=>{modal.classList.add('hidden');document.body.style.overflow='';if($('neverShowAgain')?.checked){try{localStorage.setItem('nightfallIntroDismissed','1')}catch(e){}}};
+  const checkbox=$('neverShowAgain');
+  const close=()=>{
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow='';
+    if(checkbox && checkbox.checked){
+      try{localStorage.setItem('nightfallIntroDismissed','1')}catch(e){}
+    }
+  };
   let dismissed=false;
   try{dismissed=localStorage.getItem('nightfallIntroDismissed')==='1'}catch(e){}
-  if(!dismissed){modal.classList.remove('hidden');document.body.style.overflow='hidden'}
+  if(dismissed){
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden','true');
+    modal.style.removeProperty('display');
+  }else{
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden','false');
+    modal.style.display='grid';
+    document.body.style.overflow='hidden';
+  }
   $('creatorClose').onclick=close;
   $('creatorStart').onclick=close;
   modal.addEventListener('click',e=>{if(e.target===modal)close()});
