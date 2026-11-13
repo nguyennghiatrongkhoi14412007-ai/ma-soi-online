@@ -61,13 +61,13 @@ const roleSkills = {
 };
 function hostSnapshot(room) {
   return {
-    night: room.night || 1,
-    players: [...room.players.values()].map(p => ({
+    night: room.night || 1, resolved: !!room.nightResolved,
+    players: [...room.players.values()].filter(p=>p.id!==room.hostId).map(p => ({
       id:p.id, name:p.name, roleId:room.roles[p.id] || null,
       role:roleById[room.roles[p.id]] || null,
-      skills:roleSkills[room.roles[p.id]] || []
+      skills:roleSkills[room.roles[p.id]] || [], alive:room.alive?.[p.id]!==false
     })),
-    actions: room.nightActions || []
+    actions: room.nightActions || [], results: room.nightResults || []
   };
 }
 function emitHostState(room) {
@@ -122,16 +122,16 @@ io.on('connection', socket=>{
   socket.on('game:start',()=>{
     const room=rooms.get(socketRoom.get(socket.id)); if(!room||room.hostId!==socket.id) return fail(socket,'Chỉ chủ phòng mới có thể bắt đầu.');
     if(room.status!=='lobby') return fail(socket,'Ván chơi đã bắt đầu.');
-    const players=[...room.players.values()]; const deck=[]; room.deck.forEach(x=>{for(let i=0;i<x.count;i++)deck.push(x.id)});
+    const players=[...room.players.values()].filter(p=>p.id!==room.hostId); const deck=[]; room.deck.forEach(x=>{for(let i=0;i<x.count;i++)deck.push(x.id)});
     if(deck.length<players.length) return fail(socket,`Cần ít nhất ${players.length} lá bài cho ${players.length} người chơi. Hiện có ${deck.length} lá.`);
     // Fisher-Yates shuffle: every card has equal chance at every position.
     for(let i=deck.length-1;i>0;i--){const j=crypto.randomInt(i+1);[deck[i],deck[j]]=[deck[j],deck[i]];}
-    room.roles={}; players.forEach((p,i)=>{room.roles[p.id]=deck[i]; io.to(p.id).emit('game:your-role',{role:roleById[deck[i]]});});
-    room.status='started'; room.night=1; room.nightActions=[]; emitRoom(room); emitHostState(room);
+    room.roles={}; room.alive={}; players.forEach((p,i)=>{room.roles[p.id]=deck[i]; room.alive[p.id]=true; io.to(p.id).emit('game:your-role',{role:roleById[deck[i]]});});
+    room.status='started'; room.night=1; room.nightActions=[]; room.nightResolved=false; emitRoom(room); emitHostState(room);
   });
   socket.on('game:reset',()=>{
     const room=rooms.get(socketRoom.get(socket.id)); if(!room||room.hostId!==socket.id) return fail(socket,'Chỉ chủ phòng mới có thể tạo ván mới.');
-    room.status='lobby'; room.roles={}; room.night=1; room.nightActions=[];
+    room.status='lobby'; room.roles={}; room.alive={}; room.night=1; room.nightActions=[]; room.nightResolved=false;
     for(const p of room.players.values()) io.to(p.id).emit('game:role-cleared');
     emitRoom(room); emitHostState(room);
   });
@@ -140,20 +140,54 @@ io.on('connection', socket=>{
     const room=rooms.get(socketRoom.get(socket.id));
     if(!room||room.hostId!==socket.id||room.status!=='started') return fail(socket,'Chỉ quản trò mới được ghi nhận hành động.');
     const target=room.players.get(targetId); if(!target) return fail(socket,'Không tìm thấy người chơi được chọn.');
+    if(room.alive?.[targetId]===false) return fail(socket,'Người chơi này đã chết, không thể chọn làm mục tiêu.');
+    if(room.nightResolved) return fail(socket,'Đêm này đã được chốt.');
     if(typeof skill!=='string'||!skill.trim()) return;
     room.nightActions=room.nightActions||[];
     room.nightActions.push({id:crypto.randomUUID(),night:room.night||1,skill:skill.slice(0,80),targetId,targetName:target.name,at:Date.now()});
     emitHostState(room);
   });
+  socket.on('game:host:resolve-night',()=>{
+    const room=rooms.get(socketRoom.get(socket.id));
+    if(!room||room.hostId!==socket.id||room.status!=='started') return fail(socket,'Chỉ quản trò mới được chốt đêm.');
+    if(room.nightResolved) return fail(socket,'Đêm này đã được chốt rồi.');
+    const actions=(room.nightActions||[]).filter(a=>a.night===(room.night||1));
+    const bySkill=(prefix)=>actions.filter(a=>a.skill.toLowerCase().includes(prefix.toLowerCase()));
+    const wolfTargets=bySkill('sói cắn');
+    const guardTargets=bySkill('bảo vệ');
+    const saveTargets=bySkill('bình cứu');
+    const poisonTargets=bySkill('bình độc');
+    const protectedIds=new Set(guardTargets.map(a=>a.targetId));
+    const savedIds=new Set(saveTargets.map(a=>a.targetId));
+    const deaths=new Map();
+    wolfTargets.forEach(a=>{
+      if(!protectedIds.has(a.targetId)&&!savedIds.has(a.targetId))
+        deaths.set(a.targetId,{cause:'Ma Sói cắn',by:'wolf'});
+    });
+    // Witch poison is a direct kill and is not cancelled by Guard protection.
+    poisonTargets.forEach(a=>deaths.set(a.targetId,{cause:'Phù Thủy dùng bình độc',by:'witch'}));
+    room.nightResults=[];
+    for(const [id,detail] of deaths){
+      if(room.alive[id]!==false){room.alive[id]=false;const p=room.players.get(id);room.nightResults.push({playerId:id,name:p?.name||'Người chơi',cause:detail.cause});}
+    }
+    // If a guarded/saved target survives a wolf attack, keep an explicit result for the host.
+    room.nightResults.push(...wolfTargets.filter(a=>!deaths.has(a.targetId)).map(a=>({
+      playerId:a.targetId,name:room.players.get(a.targetId)?.name||'Người chơi',
+      cause:protectedIds.has(a.targetId)?'Sống sót · được Bảo Vệ che chắn':savedIds.has(a.targetId)?'Sống sót · được Phù Thủy cứu':'Không bị loại'
+    })));
+    room.nightResolved=true; emitHostState(room);
+  });
   socket.on('game:host:next-night',()=>{
     const room=rooms.get(socketRoom.get(socket.id));
     if(!room||room.hostId!==socket.id||room.status!=='started') return fail(socket,'Chỉ quản trò mới được chuyển đêm.');
-    room.night=(room.night||1)+1; emitHostState(room);
+    if(!room.nightResolved) return fail(socket,'Hãy chốt kết quả đêm hiện tại trước khi chuyển đêm.');
+    room.night=(room.night||1)+1; room.nightResolved=false; room.nightActions=[]; room.nightResults=[]; emitHostState(room);
   });
   socket.on('game:host:undo',()=>{
     const room=rooms.get(socketRoom.get(socket.id));
     if(!room||room.hostId!==socket.id||room.status!=='started') return fail(socket,'Chỉ quản trò mới được hoàn tác.');
     const list=room.nightActions||[]; const idx=list.map((a,i)=>({a,i})).filter(x=>x.a.night===(room.night||1)).pop();
+    if(room.nightResolved) return fail(socket,'Không thể hoàn tác sau khi chốt đêm. Hãy dùng chức năng sửa kết quả ở phiên bản tiếp theo.');
     if(idx) list.splice(idx.i,1); emitHostState(room);
   });
   socket.on('disconnect',()=>leave(socket));

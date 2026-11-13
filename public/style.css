@@ -104,3 +104,15 @@ footer small{display:block;margin-top:7px;font-size:9px;letter-spacing:1.3px;col
  .host-nightbar .btn{width:100%}
  .host-log-head{align-items:stretch;flex-direction:column}
 }
+
+
+/* Host-only screen and night outcome indicators */
+.host-result{padding:10px 12px;margin-top:6px;border-radius:7px;font-weight:700;font-size:13px}
+.host-result.dead{background:#7d1825;color:#fff;border:1px solid #e34c5c}
+.host-result.alive{background:#183b2c;color:#b8f3d0;border:1px solid #3e9469}
+.host-player-card.dead{background:#3a1018;border:1px solid #d33d50;box-shadow:inset 0 0 0 1px #d33d5040}
+.host-player-card.dead .host-player-head b,.host-player-card.dead .host-player-head span{color:#ffb5bd}
+.host-player-card.dead .host-target{background:#641a26;color:#ffdce0}
+.host-player-card.dead .host-skills{opacity:.45}
+.host-night-results{margin-top:12px}
+.host-mode .game-heading h2{color:var(--gold)}
