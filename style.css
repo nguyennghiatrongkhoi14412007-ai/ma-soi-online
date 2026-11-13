@@ -22,43 +22,58 @@ footer small{display:block;margin-top:7px;font-size:9px;letter-spacing:1.3px;col
 @media(max-width:480px){.creator-card{padding:34px 22px 22px}.creator-brand{font-size:26px}.creator-name{font-size:22px}}
 
 
-/* Android/mobile role selector: avoid nested scrolling inside the lobby.
-   Let the document scroll naturally so role rows remain reachable on touch devices. */
-@media (max-width: 760px) {
-  html, body {
-    min-height: 100%;
-    height: auto;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
+/* Nightfall Android role selector scroll fix v2 */
+@media screen and (max-width: 760px) {
+  html {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+  body {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y !important;
+  }
+  main {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
   }
   .screen,
   .screen.active,
   #lobby,
+  #lobby.screen.active,
   .room-layout,
   .setup-panel {
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-    touch-action: pan-y;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    animation: none !important;
+    touch-action: pan-y !important;
   }
   .role-groups {
-    max-height: none !important;
     height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     overflow: visible !important;
+    overflow-x: hidden !important;
     overflow-y: visible !important;
-    -webkit-overflow-scrolling: auto;
-    overscroll-behavior: auto;
-    touch-action: pan-y;
-    padding-right: 0;
+    -webkit-overflow-scrolling: auto !important;
+    overscroll-behavior: auto !important;
+    touch-action: pan-y !important;
+    padding-right: 0 !important;
   }
   .role-option,
-  .role-option * {
-    touch-action: pan-y;
-  }
-  .role-tools {
-    position: relative;
-    z-index: 1;
+  .role-option *,
+  .role-group-title {
+    touch-action: pan-y !important;
   }
 }
