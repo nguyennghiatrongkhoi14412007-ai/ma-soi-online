@@ -21,48 +21,86 @@
 footer small{display:block;margin-top:7px;font-size:9px;letter-spacing:1.3px;color:#9d8b94}
 @media(max-width:480px){.creator-card{padding:34px 22px 22px}.creator-brand{font-size:26px}.creator-name{font-size:22px}}
 
-/* Mobile-first scrolling and game-master controls */
-html{min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-text-size-adjust:100%;}
-body{min-height:100dvh;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:auto;-webkit-overflow-scrolling:touch;}
-main{min-height:calc(100dvh - 120px);}
-.screen{min-height:1px;overflow:visible;touch-action:pan-y;}
-.role-groups{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
-.gm-console{margin:24px 0;padding:20px;scroll-margin-top:16px;}
-.gm-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0;padding:12px;background:#120f15;border:1px solid var(--line);border-radius:7px;}
-.gm-toolbar strong{font:700 18px Cinzel;color:var(--gold);white-space:nowrap;}
-.gm-players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px;}
-.gm-player{min-width:0;padding:12px;background:#151119;border:1px solid #44313d;border-radius:8px;}
-.gm-player-top{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
-.gm-player-top b{font-size:12px;overflow-wrap:anywhere;}
-.gm-player-top span{font-size:10px;color:var(--gold);}
-.gm-skill-list{display:flex;flex-wrap:wrap;gap:6px;}
-.gm-skill{font-size:9px;padding:9px 10px;letter-spacing:.2px;white-space:normal;}
-.gm-no-skill{font-size:9px;color:var(--muted);}
-.gm-target-box{margin-top:16px;padding:14px;background:#211923;border:1px solid #78513f;border-radius:8px;}
-.gm-target-box>b{display:block;color:var(--gold);font-size:11px;margin-bottom:10px;}
-.gm-targets{display:flex;flex-wrap:wrap;gap:7px;}
-.gm-targets .btn{min-width:90px;}
-.gm-log-title{margin-top:20px;padding-bottom:8px;border-bottom:1px solid var(--line);font-size:9px;letter-spacing:1.5px;color:var(--gold);font-weight:700;}
-.gm-log{display:grid;gap:6px;padding-top:10px;font-size:10px;color:#d8cbd0;}
-.gm-log-row{padding:9px 10px;border-radius:5px;background:#17131a;border:1px solid #382a35;}
-@media(max-width:760px){
-  html,body{height:auto;min-height:100%;overflow-y:auto!important;}
-  .screen{padding:26px 14px 42px;min-height:calc(100dvh - 76px);overflow:visible;}
-  .role-groups{max-height:none;overflow:visible;padding-right:0;}
-  .role-tools{position:relative;flex-wrap:wrap;}
-  .role-tools input{min-width:0;}
-  .gm-console{padding:14px;margin:18px 0 24px;}
-  .gm-players{grid-template-columns:1fr;}
-  .gm-toolbar{align-items:stretch;flex-direction:column;}
-  .gm-toolbar>div{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-  .gm-toolbar .btn{padding:12px 8px;font-size:9px;}
-  .gm-targets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
-  .gm-targets .btn{min-width:0;width:100%;white-space:normal;overflow-wrap:anywhere;}
-  .game-bottom{align-items:stretch;}
-  .game-nav{display:grid;grid-template-columns:1fr;width:100%;}
-  .game-nav .btn{min-height:44px;touch-action:manipulation;}
-  .panel,.gm-player,.gm-target-box{overflow:visible;}
-  button,input,select{touch-action:manipulation;}
+
+/* Nightfall Android role selector scroll fix v2 */
+@media screen and (max-width: 760px) {
+  html {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+  body {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y !important;
+  }
+  main {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+  .screen,
+  .screen.active,
+  #lobby,
+  #lobby.screen.active,
+  .room-layout,
+  .setup-panel {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    animation: none !important;
+    touch-action: pan-y !important;
+  }
+  .role-groups {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: auto !important;
+    overscroll-behavior: auto !important;
+    touch-action: pan-y !important;
+    padding-right: 0 !important;
+  }
+  .role-option,
+  .role-option *,
+  .role-group-title {
+    touch-action: pan-y !important;
+  }
 }
-.offline-tag{margin-left:auto;font-size:8px;color:#e58b8b;border:1px solid #8d4650;padding:3px 6px;border-radius:4px;white-space:nowrap}
-.gm-skill:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(1)}
+
+
+/* Nightfall Game Master dashboard */
+.host-dashboard{margin:28px 0;padding:20px;border:1px solid #8d654b;background:linear-gradient(145deg,#211820,#120f15)}
+.host-nightbar,.host-log-head,.host-player-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.host-nightbar{margin:16px 0;padding:12px;background:#120d13;border-radius:8px}
+.host-nightbar strong{font:700 18px Cinzel;color:var(--gold)}
+.host-players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
+.host-player-card{min-width:0;padding:12px;border:1px solid #493340;border-radius:8px;background:#17121a}
+.host-player-head{align-items:flex-start;flex-wrap:wrap;margin-bottom:10px}
+.host-player-head b{color:#f4e9e8}
+.host-player-head span{font-size:12px;color:var(--gold)}
+.host-skills{display:flex;flex-wrap:wrap;gap:7px}
+.host-skills .btn{font-size:10px;padding:9px}
+.host-target{width:100%;margin-top:9px;font-size:10px;padding:9px}
+.host-player-card.target-mode{border-color:#a9784c}
+.host-player-card.skill-source{box-shadow:inset 0 0 0 1px var(--gold)}
+.host-log-head{margin-top:18px;padding-top:14px;border-top:1px solid #ffffff18}
+.host-action-log{display:grid;gap:6px;margin-top:10px}
+.host-log-row{padding:9px 11px;border-radius:6px;background:#120f15;color:#e9d8d5;font-size:12px}
+@media(max-width:760px){
+ .host-dashboard{padding:14px;margin:18px 0}
+ .host-players{grid-template-columns:1fr}
+ .host-nightbar{align-items:stretch;flex-direction:column}
+ .host-nightbar .btn{width:100%}
+ .host-log-head{align-items:stretch;flex-direction:column}
+}

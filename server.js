@@ -50,12 +50,36 @@ const ROLES = [
   ['actor','Diễn Viên','wild','Có thể nhận một vai trò phụ hoặc chọn vai từ các lá dự phòng.','🎭']
 ].map(([id,name,team,description,emoji])=>({id,name,team,description,emoji}));
 const roleById = Object.fromEntries(ROLES.map(r=>[r.id,r]));
+const roleSkills = {
+  werewolf:['Sói cắn'], seer:['Tiên tri soi'], witch:['Phù Thủy · Bình cứu','Phù Thủy · Bình độc'],
+  guard:['Bảo vệ'], cupid:['Ghép đôi'], hunter:['Thợ Săn · Bắn'], piper:['Mê hoặc'],
+  white_wolf:['Sói Trắng · Cắn'], big_bad_wolf:['Sói Lớn · Cắn bổ sung'],
+  alpha_wolf:['Sói Alpha · Kỹ năng đặc biệt'], fox:['Cáo · Kiểm tra'],
+  knight:['Hiệp Sĩ · Thách đấu'], raven:['Quạ · Đánh dấu'], judge:['Quan Tòa · Xét xử'],
+  thief:['Kẻ Trộm · Chọn bài'], wild_child:['Đứa Trẻ Hoang Dã · Chọn hình mẫu'],
+  wolf_hound:['Chó Sói · Chọn phe'], actor:['Diễn Viên · Chọn vai']
+};
+function hostSnapshot(room) {
+  return {
+    night: room.night || 1,
+    players: [...room.players.values()].map(p => ({
+      id:p.id, name:p.name, roleId:room.roles[p.id] || null,
+      role:roleById[room.roles[p.id]] || null,
+      skills:roleSkills[room.roles[p.id]] || []
+    })),
+    actions: room.nightActions || []
+  };
+}
+function emitHostState(room) {
+  if (room.hostId) io.to(room.hostId).emit('game:host-state', hostSnapshot(room));
+}
+
 const rooms = new Map();
 const socketRoom = new Map();
 
 function code(){ let s; do { s=crypto.randomBytes(3).toString('hex').toUpperCase(); } while(rooms.has(s)); return s; }
 function cleanName(s){ return String(s||'').trim().replace(/[<>]/g,'').slice(0,18); }
-function publicRoom(room){ return { code:room.code, hostId:room.hostId, status:room.status, players:[...room.players.values()].map(p=>({id:p.id,name:p.name,isHost:p.id===room.hostId})), selected:room.selected, deckSize:room.deck.reduce((a,x)=>a+x.count,0) }; }
+function publicRoom(room){ return { code:room.code, hostId:room.hostId, status:room.status, players:[...room.players.values()].map(p=>({id:p.id,name:p.name,isHost:p.id===room.hostId})), selected:room.selected, deck:room.deck.map(x=>({id:x.id,count:x.count})), deckSize:room.deck.reduce((a,x)=>a+x.count,0) }; }
 function emitRoom(room){ io.to(room.code).emit('room:update',publicRoom(room)); }
 function fail(socket,msg){ socket.emit('app:error',msg); }
 function leave(socket){
@@ -73,7 +97,7 @@ io.on('connection', socket=>{
   socket.on('room:create', ({name}={})=>{
     if(socketRoom.has(socket.id)) leave(socket);
     name=cleanName(name); if(!name) return fail(socket,'Bạn hãy nhập tên trước khi tạo phòng.');
-    const c=code(); const room={code:c,hostId:socket.id,players:new Map(),status:'lobby',selected:[],deck:[],roles:{}};
+    const c=code(); const room={code:c,hostId:socket.id,players:new Map(),status:'lobby',selected:[],deck:[],roles:{},night:1,nightActions:[]};
     room.players.set(socket.id,{id:socket.id,name}); rooms.set(c,room); socket.join(c); socketRoom.set(socket.id,c);
     socket.emit('room:joined',{room:publicRoom(room),roles:ROLES}); emitRoom(room);
   });
@@ -93,7 +117,7 @@ io.on('connection', socket=>{
     if(!Array.isArray(selected)) return;
     const counts={};
     for(const item of selected){ const id=String(item.id||''); const count=Math.max(0,Math.min(30,parseInt(item.count,10)||0)); if(roleById[id]&&count) counts[id]=count; }
-    room.selected=Object.keys(counts); room.deck=Object.entries(counts).map(([id,count])=>({id,count})); emitRoom(room);
+    room.selected=Object.keys(counts); room.deck=Object.entries(counts).map(([id,count])=>({id,count})); socket.emit('room:select:ack',{ok:true,deck:room.deck}); emitRoom(room);
   });
   socket.on('game:start',()=>{
     const room=rooms.get(socketRoom.get(socket.id)); if(!room||room.hostId!==socket.id) return fail(socket,'Chỉ chủ phòng mới có thể bắt đầu.');
@@ -103,13 +127,34 @@ io.on('connection', socket=>{
     // Fisher-Yates shuffle: every card has equal chance at every position.
     for(let i=deck.length-1;i>0;i--){const j=crypto.randomInt(i+1);[deck[i],deck[j]]=[deck[j],deck[i]];}
     room.roles={}; players.forEach((p,i)=>{room.roles[p.id]=deck[i]; io.to(p.id).emit('game:your-role',{role:roleById[deck[i]]});});
-    room.status='started'; emitRoom(room);
+    room.status='started'; room.night=1; room.nightActions=[]; emitRoom(room); emitHostState(room);
   });
   socket.on('game:reset',()=>{
     const room=rooms.get(socketRoom.get(socket.id)); if(!room||room.hostId!==socket.id) return fail(socket,'Chỉ chủ phòng mới có thể tạo ván mới.');
-    room.status='lobby'; room.roles={};
+    room.status='lobby'; room.roles={}; room.night=1; room.nightActions=[];
     for(const p of room.players.values()) io.to(p.id).emit('game:role-cleared');
-    emitRoom(room);
+    emitRoom(room); emitHostState(room);
+  });
+  socket.on('game:host:refresh',()=>{const room=rooms.get(socketRoom.get(socket.id)); if(room&&room.hostId===socket.id&&room.status==='started') emitHostState(room);});
+  socket.on('game:host:action',({skill,targetId}={})=>{
+    const room=rooms.get(socketRoom.get(socket.id));
+    if(!room||room.hostId!==socket.id||room.status!=='started') return fail(socket,'Chỉ quản trò mới được ghi nhận hành động.');
+    const target=room.players.get(targetId); if(!target) return fail(socket,'Không tìm thấy người chơi được chọn.');
+    if(typeof skill!=='string'||!skill.trim()) return;
+    room.nightActions=room.nightActions||[];
+    room.nightActions.push({id:crypto.randomUUID(),night:room.night||1,skill:skill.slice(0,80),targetId,targetName:target.name,at:Date.now()});
+    emitHostState(room);
+  });
+  socket.on('game:host:next-night',()=>{
+    const room=rooms.get(socketRoom.get(socket.id));
+    if(!room||room.hostId!==socket.id||room.status!=='started') return fail(socket,'Chỉ quản trò mới được chuyển đêm.');
+    room.night=(room.night||1)+1; emitHostState(room);
+  });
+  socket.on('game:host:undo',()=>{
+    const room=rooms.get(socketRoom.get(socket.id));
+    if(!room||room.hostId!==socket.id||room.status!=='started') return fail(socket,'Chỉ quản trò mới được hoàn tác.');
+    const list=room.nightActions||[]; const idx=list.map((a,i)=>({a,i})).filter(x=>x.a.night===(room.night||1)).pop();
+    if(idx) list.splice(idx.i,1); emitHostState(room);
   });
   socket.on('disconnect',()=>leave(socket));
 });
