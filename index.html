@@ -2,10 +2,10 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#100d12"><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=1"><title>Ma Sói Online — Nightfall</title>
+<meta name="theme-color" content="#100d12"><title>Ma Sói Online — Nightfall</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/style.css?v=nightfall-gm-mobile-4"><script src="/socket.io/socket.io.js"></script>
+<link rel="stylesheet" href="/style.css?v=mobile-role-scroll-1"><script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 <div class="ambient"></div><header class="topbar"><a class="brand" href="/"><span class="brand-mark">☾</span><span>NIGHTFALL<small>MA SÓI ONLINE</small></span></a><div class="top-status"><i></i> HỆ THỐNG SẴN SÀNG</div></header>
@@ -25,14 +25,6 @@
   <div class="page-heading game-heading"><div class="eyebrow"><span></span> THE FATE IS SEALED</div><h2>VAI TRÒ CỦA BẠN</h2><p>Đảm bảo không ai nhìn vào màn hình của bạn trước khi mở bài.</p></div>
   <div class="secret-wrap"><div class="card-back" id="cardBack"><div class="card-back-inner"><span class="moon">☾</span><div class="sigil">✦</div><div class="card-back-title">NIGHTFALL</div><small>YOUR DESTINY AWAITS</small><button id="revealBtn" class="btn primary reveal-btn">MỞ LÁ BÀI</button></div></div>
   <div id="roleCard" class="role-card hidden"><div class="role-art" id="roleArt"><span id="roleEmoji">🐺</span><div class="art-orbit"></div><div class="art-moon">☾</div></div><div class="role-info"><small>THÂN PHẬN CỦA BẠN</small><h2 id="roleName">MA SÓI</h2><span id="roleTeam" class="team-pill">PHE MA SÓI</span><p id="roleDescription"></p><div class="secret-warning">◈ ĐỪNG ĐỂ NGƯỜI KHÁC NHÌN THẤY LÁ BÀI NÀY</div></div></div></div>
-  <section id="gmConsole" class="panel gm-console hidden" aria-live="polite">
-    <div class="panel-title"><div><small>GAME MASTER · NIGHT CONTROL</small><h3>BẢNG ĐIỀU HÀNH QUẢN TRÒ</h3></div><span class="host-tag">CHỈ QUẢN TRÒ</span></div>
-    <div class="gm-toolbar"><strong id="gmNight">ĐÊM 1</strong><div><button class="btn secondary" id="gmUndo">HOÀN TÁC</button> <button class="btn primary" id="gmNextNight">SANG ĐÊM TIẾP</button></div></div>
-    <p class="muted">Chọn kỹ năng bên cạnh vai trò để kích hoạt, sau đó chọn người chơi làm mục tiêu. Các thao tác chỉ hiển thị với quản trò.</p>
-    <div id="gmPlayers" class="gm-players"></div>
-    <div class="gm-target-box"><b id="gmPrompt">Chưa chọn kỹ năng</b><div id="gmTargets" class="gm-targets"></div></div>
-    <div class="gm-log-title">NHẬT KÝ ĐÊM</div><div id="gmLog" class="gm-log"></div>
-  </section>
   <div class="game-bottom">
     <div class="players-mini" id="gamePlayerCount">0 người chơi trong phòng</div>
     <div class="game-nav">
@@ -62,5 +54,5 @@
   </div>
 </div>
 <footer>NIGHTFALL <span>✦</span> A GAME OF TRUST & DECEPTION <small>© 2026 NGUYỄN KHÔI S1WG</small></footer>
-<script src="/app.js?v=nightfall-gm-mobile-4"></script>
+<script src="/app.js"></script>
 </body></html>
